@@ -27,7 +27,6 @@ public class Manager extends Worker {
     public Manager(String name, int age, int salary, String department) {
         super(name, age, salary, department);
         this.worker = new ArrayList<>();
-        lead(this);
     }
 
     /**
@@ -69,8 +68,9 @@ public class Manager extends Worker {
             return "Empty";
         } else {
             List<String> nameList = worker.stream().map(Worker::getName).collect(Collectors.toList());
+            String statementStr = String.format("Statement for %s", name);
             String nameStr = String.join("\n - ", nameList);
-            return "Statement for " + nameStr;
+            return statementStr + "\n - " + nameStr;
         }
     }
 

@@ -67,6 +67,9 @@ public class Programmer extends Worker {
      * @return 当月奖金，保留两位小数
      */
     public String getBonus(int overtime) {
+        if (overtime < 0) {
+            throw new IllegalArgumentException("Overtime illegal!");
+        }
         BonusType bonusType = BonusType.fromString(type);
         double bonus = bonusType.bonus(salary, overtime);
         return SALARY_DF.format(bonus);
