@@ -16,6 +16,8 @@ public class Programmer extends Worker {
 
     private static final DecimalFormat SALARY_DF = new DecimalFormat("#,###.00");
 
+    private static final Pattern VALID_EMAIL_ADDRESS_REGEX = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
+
     /**
      * 语言
      */
@@ -134,8 +136,7 @@ public class Programmer extends Worker {
      * @return 信息隐藏的邮箱
      */
     private String handleEmail(String email) {
-        String emailPattern = "^(\\w+((-\\w+)|(\\.\\w+))*)\\+\\w+((-\\w+)|(\\.\\w+))*\\@[A-Za-z0-9]+((\\.|-)[A-Za-z0-9]+)*\\.[A-Za-z0-9]+$";
-        if (Pattern.matches(emailPattern, email)) {
+        if (VALID_EMAIL_ADDRESS_REGEX.matcher(email).matches()) {
             int atIndex = email.indexOf('@');
             String str1 = email.substring(0, atIndex);
             String str2 = email.substring(atIndex + 1);
