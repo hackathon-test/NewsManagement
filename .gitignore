@@ -36,3 +36,6 @@ gen
 bin
 bin/*
 .settings
+
+src.backup
+src.backup/*

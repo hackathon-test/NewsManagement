@@ -1,4 +1,6 @@
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 管理人员
@@ -24,6 +26,8 @@ public class Manager extends Worker {
      */
     public Manager(String name, int age, int salary, String department) {
         super(name, age, salary, department);
+        this.worker = new ArrayList<>();
+        lead(this);
     }
 
     /**
@@ -34,7 +38,7 @@ public class Manager extends Worker {
      */
     public String inquire(Worker e) {
         if (hasAuthority(e.getDepartment())) {
-            return showBasicInfo();
+            return e.showBasicInfo();
         } else {
             throw new IllegalArgumentException("Access denied!");
         }
@@ -61,7 +65,13 @@ public class Manager extends Worker {
      * @return 自己队伍的人员姓名字符串
      */
     public String print() {
-        return null;
+        if (worker.isEmpty()) {
+            return "Empty";
+        } else {
+            List<String> nameList = worker.stream().map(Worker::getName).collect(Collectors.toList());
+            String nameStr = String.join("\n - ", nameList);
+            return "Statement for " + nameStr;
+        }
     }
 
     /**

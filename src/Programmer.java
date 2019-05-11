@@ -1,16 +1,36 @@
 /**
- *
+ * 程序员
  */
 public class Programmer extends Worker {
+
+    private static final String DEPT = "Programmer";
+
+    /**
+     * 语言
+     */
     public String language;
+    /**
+     * 程序员类型
+     */
     public String type;
 
     public Programmer() {
     }
 
-    // Programmer类的初始化
+    /**
+     * 程序员初始化
+     *
+     * @param name     姓名
+     * @param age      年龄
+     * @param salary   薪资
+     * @param language 语言
+     * @param type     类型
+     */
     public Programmer(String name, int age, int salary, String language,
                       String type) {
+        super(name, age, salary, DEPT);
+        this.language = language;
+        this.type = type;
     }
 
     public String getLanguage() {
