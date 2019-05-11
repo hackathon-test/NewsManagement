@@ -151,33 +151,22 @@ public class Accountant extends Worker {
      * @param
      */
     public int checkPassword() {
+        Boolean[] hasRequire = new Boolean[]{false,false,false};
         char currentChar = ' ';
-        boolean hasBigLetter = false;
-        boolean hasSmallLetter = false;
-        boolean hasDigital = false;
         int repeat = 0;
         int operator = 0;
         int length = password.length();
         for (int i = 0; i < password.length(); i++) {
             char c = password.charAt(i);
             if (c >= 'A' && c <= 'Z') {
-                hasBigLetter = true;
+                hasRequire[0] = true;
             } else if (c >= 'a' && c <= 'z') {
-                hasSmallLetter = true;
+                hasRequire[1] = true;
             } else if (c >= '0' && c <= '9') {
-                hasDigital = true;
+                hasRequire[2] = true;
             } else {
                 operator++;
-                if (length>20){
-                    length--;
-                }
-                if (!hasBigLetter) {
-                    hasBigLetter = true;
-                } else if (!hasDigital) {
-                    hasDigital = true;
-                } else if (!hasSmallLetter) {
-                    hasSmallLetter = true;
-                }
+                length = judge(hasRequire, length);
                 currentChar=' ';
                 repeat = 0;
                 continue;
@@ -189,42 +178,37 @@ public class Accountant extends Worker {
                 repeat++;
                 if (repeat == 3) {
                     operator++;
-                    if (!hasBigLetter) {
-                        hasBigLetter = true;
-                    } else if (!hasDigital) {
-                        hasDigital = true;
-                    } else if (!hasSmallLetter) {
-                        hasSmallLetter = true;
-                    }
-                    if (length < 8){
-                        length++;
-                    }
+                    length = judge(hasRequire,length);
                     currentChar=' ';
                     repeat = 0;
                 }
             }
         }
-        if (!hasBigLetter) {
-            operator++;
-            if (length < 8){
-                length++;
-            }
-        }
-        if (!hasDigital) {
-            operator++;
-            if (length < 8){
-                length++;
-            }
-        }
-        if (!hasSmallLetter) {
-            operator++;
-            if (length < 8){
-                length++;
+        for (int i = 0; i < hasRequire.length; i++){
+            if (!hasRequire[i]){
+                operator++;
+                if (length < 8){
+                    length++;
+                }
             }
         }
         if (length < 8){
             operator += (8 - length);
         }
         return operator;
+    }
+
+    private int judge(Boolean[] hasRequire, int length) {
+        for (int i = 0; i < hasRequire.length; i++){
+            if (!hasRequire[i]){
+                hasRequire[i] = true;
+            }
+        }
+        if (length>20){
+            length--;
+        } else if (length < 8){
+            length++;
+        }
+        return length;
     }
 }
