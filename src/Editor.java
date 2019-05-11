@@ -9,8 +9,7 @@ import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombi
 
 import java.io.UnsupportedEncodingException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -158,10 +157,82 @@ public class Editor extends Worker {
     public String findHotWords(String newsContent) {
         JiebaSegmenter segmenter = new JiebaSegmenter();
         List<SegToken> tokens = segmenter.process(newsContent, JiebaSegmenter.SegMode.INDEX);
+        Map<String, Integer> tokenTimesMap = new HashMap<>();
+        for (SegToken token : tokens) {
+            String curWord = token.word;
+            try {
+                if (checkWordLen(curWord)) {
+                    if (tokenTimesMap.containsKey(curWord)) {
+                        int curTimeOfToken = tokenTimesMap.get(curWord);
+                        curTimeOfToken++;
+                        tokenTimesMap.put(curWord, curTimeOfToken);
+                    } else {
+                        tokenTimesMap.put(curWord, 1);
+                    }
+                }
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
 
-        return tokens.toString();
+        // 排序
+        List<Map.Entry<String, Integer>> tokenTimesMapEntryList = new ArrayList<>(tokenTimesMap.entrySet());
+        tokenTimesMapEntryList.sort(new ValueComparator());
 
+        // 分析结果
+        List<Map.Entry<String, Integer>> topTimesWords = wordsHasTopTimes(tokenTimesMapEntryList);
+        if (topTimesWords.size() == 1) {
+            return topTimesWords.get(0).getKey();
+        } else {
+            // 同频词语选择在文中更早出现的词语
+            return pickEarliestTopWord(newsContent, topTimesWords);
+        }
     }
+
+    /**
+     * @param toCheck 要检查的文本
+     * @return 文本是否满足：长度最少为2（即4个字节），最多为10（即20个字节）
+     */
+    private boolean checkWordLen(String toCheck) throws UnsupportedEncodingException {
+        int len = byteLength(toCheck);
+        return len >= 4 && len <= 20;
+    }
+
+    /**
+     * @param tokenTimesMapEntryList 包含词语及其频次的列表
+     * @return 频次最高的词语（可能大于一）
+     */
+    private List<Map.Entry<String, Integer>> wordsHasTopTimes(List<Map.Entry<String, Integer>> tokenTimesMapEntryList) {
+        int curTopTimes = tokenTimesMapEntryList.get(0).getValue();
+        List<Map.Entry<String, Integer>> result = new ArrayList<>();
+
+        for (Map.Entry<String, Integer> curToken : tokenTimesMapEntryList) {
+            if (curToken.getValue() == curTopTimes) {
+                result.add(curToken);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @param newsContent   文本内容
+     * @param topTimesWords 频率出现最高的词语
+     * @return 频率出现最高且在文本中出现最早的词语
+     */
+    private String pickEarliestTopWord(String newsContent, List<Map.Entry<String, Integer>> topTimesWords) {
+        Map<String, Integer> wordsWithIndexMap = new HashMap<>();
+        for (Map.Entry<String, Integer> token : topTimesWords) {
+            String curWord = token.getKey();
+            int firstIndex = newsContent.indexOf(curWord);
+            wordsWithIndexMap.put(curWord, firstIndex);
+        }
+
+        // 按照出现时间排序
+        List<Map.Entry<String, Integer>> wordsWithIndexMapEntryList = new ArrayList<>(wordsWithIndexMap.entrySet());
+        wordsWithIndexMapEntryList.sort(new ValueComparator());
+        return wordsWithIndexMapEntryList.get(wordsWithIndexMapEntryList.size() - 1).getKey();
+    }
+
 
     /**
      * 相似度对比
@@ -216,5 +287,11 @@ public class Editor extends Worker {
         }
 
         return edit[len1 - 1][len2 - 1];
+    }
+
+    private class ValueComparator implements Comparator<Map.Entry<String, Integer>> {
+        public int compare(Map.Entry<String, Integer> mp1, Map.Entry<String, Integer> mp2) {
+            return mp2.getValue() - mp1.getValue();
+        }
     }
 }
