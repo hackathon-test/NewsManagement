@@ -206,8 +206,6 @@ public class Accountant extends Worker {
         }
         if (length>20){
             length--;
-        } else if (length < 8){
-            length++;
         }
         return length;
     }
