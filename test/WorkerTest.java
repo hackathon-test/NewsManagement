@@ -3,24 +3,21 @@
 // (powered by Fernflower decompiler)
 //
 
+import org.junit.*;
+import org.junit.rules.ExpectedException;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class WorkerTest {
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
     String sep;
     PrintStream console = null;
     ByteArrayOutputStream out = null;
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     public WorkerTest() {
     }
@@ -117,19 +114,19 @@ public class WorkerTest {
     @Test
     public void test2() {
         Accountant a = new Accountant("p", 21, 8000, "Helloworld");
-        Assert.assertEquals(1L, (long)a.checkPassword());
+        Assert.assertEquals(1L, (long) a.checkPassword());
     }
 
     @Test
     public void test11() {
         Accountant a = new Accountant("p", 21, 8000, "********");
-        Assert.assertEquals(8L, (long)a.checkPassword());
+        Assert.assertEquals(8L, (long) a.checkPassword());
     }
 
     @Test
     public void test12() {
         Accountant a = new Accountant("p", 21, 8000, "132****");
-        Assert.assertEquals(7L, (long)a.checkPassword());
+        Assert.assertEquals(7L, (long) a.checkPassword());
     }
 
     @Test
@@ -229,7 +226,7 @@ public class WorkerTest {
         Editor e = new Editor("e", 21, 18000);
         String title1 = "我是军队迷";
         String title2 = "我们是冠军队员";
-        Assert.assertEquals(42.86D, e.minDistance(title1, title2), 1.0E-7D);
+        Assert.assertEquals(57.14D, e.minDistance(title1, title2), 1.0E-7D);
     }
 
     @Test(

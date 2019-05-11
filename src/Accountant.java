@@ -1,5 +1,3 @@
-import java.util.regex.Pattern;
-
 /**
  * 会计类
  */
@@ -151,7 +149,7 @@ public class Accountant extends Worker {
      * @param
      */
     public int checkPassword() {
-        Boolean[] hasRequire = new Boolean[]{false,false,false};
+        Boolean[] hasRequire = new Boolean[]{false, false, false};
         char currentChar = ' ';
         int repeat = 0;
         int operator = 0;
@@ -167,7 +165,7 @@ public class Accountant extends Worker {
             } else {
                 operator++;
                 length = judge(hasRequire, length);
-                currentChar=' ';
+                currentChar = ' ';
                 repeat = 0;
                 continue;
             }
@@ -178,34 +176,36 @@ public class Accountant extends Worker {
                 repeat++;
                 if (repeat == 3) {
                     operator++;
-                    length = judge(hasRequire,length);
-                    currentChar=' ';
+                    length = judge(hasRequire, length);
+                    currentChar = ' ';
                     repeat = 0;
                 }
             }
         }
-        for (int i = 0; i < hasRequire.length; i++){
-            if (!hasRequire[i]){
+        for (int i = 0; i < hasRequire.length; i++) {
+            if (!hasRequire[i]) {
                 operator++;
-                if (length < 8){
+                if (length < 8) {
                     length++;
                 }
             }
         }
-        if (length < 8){
+        if (length < 8) {
             operator += (8 - length);
         }
         return operator;
     }
 
     private int judge(Boolean[] hasRequire, int length) {
-        for (int i = 0; i < hasRequire.length; i++){
-            if (!hasRequire[i]){
+        for (int i = 0; i < hasRequire.length; i++) {
+            if (!hasRequire[i]) {
                 hasRequire[i] = true;
             }
         }
-        if (length>20){
+        if (length > 20) {
             length--;
+        } else if (length < 8) {
+            length++;
         }
         return length;
     }
