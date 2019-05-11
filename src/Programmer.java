@@ -1,16 +1,47 @@
+import programmer.BonusType;
+
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+
 /**
- *
+ * 程序员
  */
 public class Programmer extends Worker {
+
+    private static final String DEPT = "Programmer";
+
+    private static final DecimalFormat SALARY_DF = new DecimalFormat("#,###.00");
+
+    /**
+     * 语言
+     */
     public String language;
+    /**
+     * 程序员类型
+     */
     public String type;
 
     public Programmer() {
     }
 
-    // Programmer类的初始化
+    /**
+     * 程序员初始化
+     *
+     * @param name     姓名
+     * @param age      年龄
+     * @param salary   薪资
+     * @param language 语言
+     * @param type     类型
+     */
     public Programmer(String name, int age, int salary, String language,
                       String type) {
+        super(name, age, salary, DEPT);
+        this.language = language;
+        this.type = type;
     }
 
     public String getLanguage() {
@@ -29,19 +60,21 @@ public class Programmer extends Worker {
         this.type = type;
     }
 
-    @Override
-    protected String showBasicInfo() {
-        return String.format("My name is %s ; age : %d ; language : %s ; salary : %d.", name, age, language, salary);
-    }
-
-    // 按照规则计算当月的奖金
+    /**
+     * 根据计算当月奖金
+     *
+     * @param overtime 加班次数
+     * @return 当月奖金，保留两位小数
+     */
     public String getBonus(int overtime) {
-        return null;
+        BonusType bonusType = BonusType.fromString(type);
+        double bonus = bonusType.bonus(salary, overtime);
+        return SALARY_DF.format(bonus);
     }
 
-    // 展示基本信息
+    @Override
     public String show() {
-        return null;
+        return String.format("My name is %s ; age : %d ; language : %s ; salary : %d.", name, age, language, salary);
     }
 
 
@@ -84,7 +117,82 @@ public class Programmer extends Worker {
      * @param comment
      */
     public String hideUserinfo(String comment) {
-        return comment;
+        String pattern = ".*@.*";
+        boolean isEmail = Pattern.matches(pattern, comment);
+        if (isEmail) {
+            return handleEmail(comment.toLowerCase());
+        } else {
+            return handlePhoneNum(comment);
+        }
+    }
+
+    /**
+     * @param email 待处理的邮箱
+     * @return 信息隐藏的邮箱
+     */
+    private String handleEmail(String email) {
+        String emailPattern = "^(\\w+((-\\w+)|(\\.\\w+))*)\\+\\w+((-\\w+)|(\\.\\w+))*\\@[A-Za-z0-9]+((\\.|-)[A-Za-z0-9]+)*\\.[A-Za-z0-9]+$";
+        if (Pattern.matches(emailPattern, email)) {
+            int atIndex = email.indexOf('@');
+            String str1 = email.substring(0, atIndex);
+            String str2 = email.substring(atIndex + 1);
+            String hiddenStr1 = str1.charAt(0) + "*****" + str1.charAt(str1.length() - 1);
+            return hiddenStr1 + '@' + str2;
+        } else {
+            // 邮箱格式不正确
+            return "illegal";
+        }
+    }
+
+    /**
+     * 电话号码包含 10 个数字 => 本地号码 => ***-***-1111
+     * 电话号码数字大于 10 个数字 => 国际号码 => +[*]-***-***-1111
+     *
+     * @param phoneNum 待处理的手机号
+     * @return 信息隐藏的手机号
+     */
+    private String handlePhoneNum(String phoneNum) {
+        ArrayList<Character> phoneNumList = new ArrayList<>();
+        for (Character c : phoneNum.toCharArray()) {
+            if (c >= '0' && c <= '9') {
+                phoneNumList.add(c);
+            }
+        }
+
+        return phoneNumList.size() > 10 ? hidePhoneNumber(phoneNumList, false) : hidePhoneNumber(phoneNumList, true);
+    }
+
+    private String hidePhoneNumber(List<Character> phoneNumList, boolean isLocal) {
+        char hyphen = '-';
+        List<Character> hiddenPhoneNumRepreList = new LinkedList<>();
+        for (int i = phoneNumList.size() - 1; i >= phoneNumList.size() - 4; i--) {
+            hiddenPhoneNumRepreList.add(0, phoneNumList.get(i));
+        }
+        hiddenPhoneNumRepreList.add(0, hyphen);
+
+
+        int curPartLen = 0;
+        for (int i = phoneNumList.size() - 5; i >= 0; i--) {
+            hiddenPhoneNumRepreList.add(0, '*');
+            if (curPartLen < 2) {
+                curPartLen++;
+            } else {
+                curPartLen = 0;
+                if (i != 0) {
+                    hiddenPhoneNumRepreList.add(0, hyphen);
+                }
+            }
+        }
+
+        if (!isLocal) {
+            hiddenPhoneNumRepreList.add(0, '+');
+        }
+
+        StringBuilder sb = new StringBuilder(hiddenPhoneNumRepreList.size());
+        for (Character c : hiddenPhoneNumRepreList) {
+            sb.append(c);
+        }
+        return sb.toString();
     }
 
 }

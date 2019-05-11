@@ -83,16 +83,11 @@ public class Worker {
     }
 
     /**
-     * 员工展示基本属性
+     * 展示员工信息
      *
      * @return 基本信息
      */
-    protected String showBasicInfo() {
-        return String.format("My name is %s ; age : %d ; salary : %d.", name, age, salary);
-    }
-
-    //展示员工的基本信息
     public String show() {
-        return null;
+        return String.format("My name is %s ; age : %d ; salary : %d ; department : %s.", name, age, salary, department);
     }
 }
