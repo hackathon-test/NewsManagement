@@ -7,6 +7,7 @@ import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
 import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
 import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
+import java.io.UnsupportedEncodingException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,15 +60,25 @@ public class Editor extends Worker {
         final int maxSize = 32;
         StringBuilder curLine = new StringBuilder("    ");
         for (int i = 0; i < sentences.size(); i++) {
-            while (sentences.get(i).length() <= maxSize - curLine.length()) {
+            while (i < sentences.size() && byteLength(sentences.get(i)) <= maxSize - byteLength(curLine.toString())) {
                 curLine.append(sentences.get(i));
                 i++;
             }
-            int restSpace = maxSize - curLine.length();
-            curLine.append(new String(new char[restSpace]).replace("\0", " "));
+            i--;
             builder.append(curLine);
-            builder.append(System.getProperty("line.separator"));
+            if (i < sentences.size() - 1) {
+                builder.append(System.getProperty("line.separator"));
+            }
             curLine = new StringBuilder();
+        }
+        System.out.println(builder.toString());
+    }
+
+    private int byteLength(String str) {
+        try {
+            return str.getBytes("GBK").length;
+        } catch (UnsupportedEncodingException e) {
+            return 0;
         }
     }
 
@@ -77,7 +88,6 @@ public class Editor extends Worker {
         List<String> sentences = new ArrayList<>();
         int curIndex = 0;
         while (m.find()) {
-            System.out.println(data.substring(curIndex, m.start() + 1));
             sentences.add(data.substring(curIndex, m.start() + 1));
             curIndex = m.start() + 1;
         }
