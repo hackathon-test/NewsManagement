@@ -8,7 +8,7 @@ public class AccountantTest {
     @Test
     public void test1() {
         Accountant a = new Accountant("p", 21, 8000, "IamOK");
-        assertEquals(1, a.checkPassword());
+        assertEquals(3, a.checkPassword());
     }
 
     @Test

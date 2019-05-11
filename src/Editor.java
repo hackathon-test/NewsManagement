@@ -122,7 +122,6 @@ public class Editor extends Worker {
             for (int i = 0; i < len; i++) {
                 try {
                     // 多音字取第一个
-                    // TODO 判断英文的情况
                     String py1 = PinyinHelper.toHanyuPinyinStringArray(o1.charAt(i), format)[0];
                     String py2 = PinyinHelper.toHanyuPinyinStringArray(o2.charAt(i), format)[0];
                     int res = py1.compareTo(py2);
