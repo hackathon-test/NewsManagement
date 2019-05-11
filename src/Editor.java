@@ -1,5 +1,3 @@
-import com.huaban.analysis.jieba.JiebaSegmenter;
-import com.huaban.analysis.jieba.SegToken;
 import net.sourceforge.pinyin4j.PinyinHelper;
 import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
 import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
@@ -155,24 +153,21 @@ public class Editor extends Worker {
      * @param newsContent
      */
     public String findHotWords(String newsContent) {
-        JiebaSegmenter segmenter = new JiebaSegmenter();
-        List<SegToken> tokens = segmenter.process(newsContent, JiebaSegmenter.SegMode.INDEX);
+        List<String> sentences = splitTextWithoutPunc(newsContent);
+        List<String> allHotwords = getAllHotwords(sentences);
+
         Map<String, Integer> tokenTimesMap = new HashMap<>();
-        for (SegToken token : tokens) {
-            String curWord = token.word;
-            try {
-                if (checkWordLen(curWord)) {
-                    if (tokenTimesMap.containsKey(curWord)) {
-                        int curTimeOfToken = tokenTimesMap.get(curWord);
-                        curTimeOfToken++;
-                        tokenTimesMap.put(curWord, curTimeOfToken);
-                    } else {
-                        tokenTimesMap.put(curWord, 1);
-                    }
+        for (String curWord : allHotwords) {
+            if (checkWordLen(curWord)) {
+                if (tokenTimesMap.containsKey(curWord)) {
+                    int curTimeOfToken = tokenTimesMap.get(curWord);
+                    curTimeOfToken++;
+                    tokenTimesMap.put(curWord, curTimeOfToken);
+                } else {
+                    tokenTimesMap.put(curWord, 1);
                 }
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
             }
+
         }
 
         // 排序
@@ -185,15 +180,54 @@ public class Editor extends Worker {
             return topTimesWords.get(0).getKey();
         } else {
             // 同频词语选择在文中更早出现的词语
-            return pickEarliestTopWord(newsContent, topTimesWords);
+            List<Map.Entry<String, Integer>> topTimesEarliestWords =  wordsHasTopTimesAndEarliest(pickEarliestTopWord(newsContent, topTimesWords));
+            List<String> words = new ArrayList<>();
+            for (Map.Entry<String, Integer> cur: topTimesEarliestWords) {
+                words.add(cur.getKey());
+            }
+            return pickEaliestLongestTopWord(words);
         }
+    }
+
+
+    private List<String> splitTextWithoutPunc(String data) {
+        Pattern punctuationPattern = Pattern.compile("[，。？！＠＃￥％……＆（）]");
+        Matcher m = punctuationPattern.matcher(data);
+        List<String> sentences = new ArrayList<>();
+        int curIndex = 0;
+        while (m.find()) {
+            sentences.add(data.substring(curIndex, m.start()));
+            curIndex = m.start() + 1;
+        }
+        return sentences;
+    }
+
+    private List<String> getAllHotwords(List<String> sentences) {
+        List<String> result = new ArrayList<>();
+        for (String sentence : sentences) {
+            result.addAll(getHotwordOfCurSentence(sentence));
+        }
+        return result;
+    }
+
+    private List<String> getHotwordOfCurSentence(String sentence) {
+        List<String> result = new ArrayList<>();
+        for (int i = 0; i < sentence.length(); i++) {
+            for (int j = i + 1; j < sentence.length(); j++) {
+                String curWord = sentence.substring(i, j + 1);
+                if (checkWordLen(curWord)) {
+                    result.add(curWord);
+                }
+            }
+        }
+        return result;
     }
 
     /**
      * @param toCheck 要检查的文本
      * @return 文本是否满足：长度最少为2（即4个字节），最多为10（即20个字节）
      */
-    private boolean checkWordLen(String toCheck) throws UnsupportedEncodingException {
+    private boolean checkWordLen(String toCheck) {
         int len = byteLength(toCheck);
         return len >= 4 && len <= 20;
     }
@@ -219,7 +253,7 @@ public class Editor extends Worker {
      * @param topTimesWords 频率出现最高的词语
      * @return 频率出现最高且在文本中出现最早的词语
      */
-    private String pickEarliestTopWord(String newsContent, List<Map.Entry<String, Integer>> topTimesWords) {
+    private List<Map.Entry<String, Integer>> pickEarliestTopWord(String newsContent, List<Map.Entry<String, Integer>> topTimesWords) {
         Map<String, Integer> wordsWithIndexMap = new HashMap<>();
         for (Map.Entry<String, Integer> token : topTimesWords) {
             String curWord = token.getKey();
@@ -230,9 +264,31 @@ public class Editor extends Worker {
         // 按照出现时间排序
         List<Map.Entry<String, Integer>> wordsWithIndexMapEntryList = new ArrayList<>(wordsWithIndexMap.entrySet());
         wordsWithIndexMapEntryList.sort(new ValueComparator());
-        return wordsWithIndexMapEntryList.get(wordsWithIndexMapEntryList.size() - 1).getKey();
+        return wordsWithIndexMapEntryList;
     }
 
+
+    private List<Map.Entry<String, Integer>> wordsHasTopTimesAndEarliest(List<Map.Entry<String, Integer>> list) {
+        int curEarliestIndex = list.get(list.size() - 1).getValue();
+        List<Map.Entry<String, Integer>> result = new ArrayList<>();
+
+        for (Map.Entry<String, Integer> curToken : list) {
+            if (curToken.getValue() == curEarliestIndex) {
+                result.add(curToken);
+            }
+        }
+        return result;
+    }
+
+    private String pickEaliestLongestTopWord(List<String> words) {
+        String result = "";
+        for (String word : words) {
+            if (word.length() > result.length()) {
+                result = word;
+            }
+        }
+        return result;
+    }
 
     /**
      * 相似度对比
@@ -274,7 +330,7 @@ public class Editor extends Worker {
                 } else {
                     if (j > 0) {
                         int distance = dp[j - 1];
-                        if (str1.charAt(i-1) != str2.charAt(j-1))
+                        if (str1.charAt(i - 1) != str2.charAt(j - 1))
                             distance = Math.min(Math.min(distance, last),
                                     dp[j]) + 1;
                         dp[j - 1] = last;
