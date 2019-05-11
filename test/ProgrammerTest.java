@@ -35,6 +35,12 @@ public class ProgrammerTest {
         assertEquals("q*****m@qq.com", p.hideUserinfo("Qm@Qq.com"));
     }
 
+    @Test(timeout=4000)
+    public void test42() {
+        Programmer p = new Programmer("p",21,8000,"Java","UI");
+        assertEquals("illegal",p.hideUserinfo("Qm@Qq@com"));
+    }
+
     @Test(timeout = 4000)
     public void test5() {
         Programmer p = new Programmer("p", 21, 8000, "Java", "UI");
@@ -45,5 +51,23 @@ public class ProgrammerTest {
     public void test6() {
         Programmer p = new Programmer("p", 21, 8000, "Java", "UI");
         assertEquals("+**-***-***-5678", p.hideUserinfo("86-(10)12345678"));
+    }
+
+    @Test(timeout=4000)
+    public void test62() {
+        Programmer p = new Programmer("p",21,8000,"Java","UI");
+        assertEquals("+***-***-***-5678",p.hideUserinfo("86-(010)12345678"));
+    }
+
+    @Test(timeout=4000)
+    public void test63() {
+        Programmer p = new Programmer("p",21,8000,"Java","UI");
+        assertEquals("+*-***-***-5678",p.hideUserinfo("86-(0)12345678"));
+    }
+
+    @Test(timeout=4000)
+    public void test64() {
+        Programmer p = new Programmer("p",21,8000,"Java","UI");
+        assertEquals("***-***-5678",p.hideUserinfo("86-12345678"));
     }
 }
