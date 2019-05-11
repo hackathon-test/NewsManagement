@@ -56,7 +56,8 @@ public class Editor extends Worker {
         StringBuilder builder = new StringBuilder();
         final int maxSize = 32;
         StringBuilder curLine = new StringBuilder("    ");
-        for (int i = 0; i < sentences.size(); i++) {
+        int i = 0;
+        while (i < sentences.size()) {
             while (i < sentences.size() && byteLength(sentences.get(i)) <= maxSize - byteLength(curLine.toString())) {
                 curLine.append(sentences.get(i));
                 i++;
@@ -67,6 +68,7 @@ public class Editor extends Worker {
                 builder.append(System.getProperty("line.separator"));
             }
             curLine = new StringBuilder();
+            i++;
         }
         System.out.println(builder.toString());
     }
@@ -129,7 +131,7 @@ public class Editor extends Worker {
                         return res;
                     }
                 } catch (BadHanyuPinyinOutputFormatCombination badHanyuPinyinOutputFormatCombination) {
-                    badHanyuPinyinOutputFormatCombination.printStackTrace();
+                    return o1.length() - o2.length();
                 }
             }
 
@@ -318,7 +320,6 @@ public class Editor extends Worker {
 
     // 计算两字符串的编辑距离
     private int getEditDistance(String str1, String str2) {
-
         int[] dp = new int[str2.length() + 1];
         for (int i = 0; i <= str1.length(); i++) {
             int last = i;
