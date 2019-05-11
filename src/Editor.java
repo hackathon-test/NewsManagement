@@ -122,7 +122,6 @@ public class Editor extends Worker {
             for (int i = 0; i < len; i++) {
                 try {
                     // 多音字取第一个
-                    // TODO 判断英文的情况
                     String py1 = PinyinHelper.toHanyuPinyinStringArray(o1.charAt(i), format)[0];
                     String py2 = PinyinHelper.toHanyuPinyinStringArray(o2.charAt(i), format)[0];
                     int res = py1.compareTo(py2);
@@ -257,7 +256,7 @@ public class Editor extends Worker {
      */
     public double minDistance(String title1, String title2) {
         int editDistance = getEditDistance(title1, title2);
-        double similarity = (1 - (double) editDistance / Math.max(title1.length(), title2.length())) * 100;
+        double similarity = (double) editDistance / Math.max(title1.length(), title2.length()) * 100;
         DecimalFormat df = new DecimalFormat("#.##");
         return Double.valueOf(df.format(similarity));
     }
