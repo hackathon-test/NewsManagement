@@ -326,15 +326,13 @@ public class Editor extends Worker {
             for (int j = 0; j <= str2.length(); j++) {
                 if (i == 0) {
                     dp[j] = j;
-                } else {
-                    if (j > 0) {
-                        int distance = dp[j - 1];
-                        if (str1.charAt(i - 1) != str2.charAt(j - 1))
-                            distance = Math.min(Math.min(distance, last),
-                                    dp[j]) + 1;
-                        dp[j - 1] = last;
-                        last = distance;
-                    }
+                } else if (j > 0) {
+                    int distance = dp[j - 1];
+                    if (str1.charAt(i - 1) != str2.charAt(j - 1))
+                        distance = Math.min(Math.min(distance, last),
+                                dp[j]) + 1;
+                    dp[j - 1] = last;
+                    last = distance;
                 }
             }
             if (i > 0)
