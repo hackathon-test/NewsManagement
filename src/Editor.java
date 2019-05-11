@@ -194,7 +194,7 @@ public class Editor extends Worker {
      * @return 文本是否满足：长度最少为2（即4个字节），最多为10（即20个字节）
      */
     private boolean checkWordLen(String toCheck) throws UnsupportedEncodingException {
-        int len = toCheck.getBytes("utf-8").length;
+        int len = byteLength(toCheck);
         return len >= 4 && len <= 20;
     }
 
