@@ -156,7 +156,7 @@ public class Editor extends Worker {
      * @param newsContent
      */
     public String findHotWords(String newsContent) {
-        List<String> sentences = splitTextWithoutPunc(newsContent);
+        List<String> sentences = splitTextWithoutPunc(newsContent.trim());
         List<String> allHotwords = getAllHotwords(sentences);
 
         Map<String, Integer> tokenTimesMap = new HashMap<>();
