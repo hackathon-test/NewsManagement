@@ -1,7 +1,11 @@
+import programmer.BonusType;
+
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
+
 
 /**
  * 程序员
@@ -9,6 +13,8 @@ import java.util.regex.Pattern;
 public class Programmer extends Worker {
 
     private static final String DEPT = "Programmer";
+
+    private static final DecimalFormat SALARY_DF = new DecimalFormat("#,###.00");
 
     /**
      * 语言
@@ -54,19 +60,21 @@ public class Programmer extends Worker {
         this.type = type;
     }
 
-    @Override
-    protected String showBasicInfo() {
-        return String.format("My name is %s ; age : %d ; language : %s ; salary : %d.", name, age, language, salary);
-    }
-
-    // 按照规则计算当月的奖金
+    /**
+     * 根据计算当月奖金
+     *
+     * @param overtime 加班次数
+     * @return 当月奖金，保留两位小数
+     */
     public String getBonus(int overtime) {
-        return null;
+        BonusType bonusType = BonusType.fromString(type);
+        double bonus = bonusType.bonus(salary, overtime);
+        return SALARY_DF.format(bonus);
     }
 
-    // 展示基本信息
+    @Override
     public String show() {
-        return null;
+        return String.format("My name is %s ; age : %d ; language : %s ; salary : %d.", name, age, language, salary);
     }
 
 

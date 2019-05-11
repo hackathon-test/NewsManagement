@@ -38,7 +38,7 @@ public class Manager extends Worker {
      */
     public String inquire(Worker e) {
         if (hasAuthority(e.getDepartment())) {
-            return e.showBasicInfo();
+            return e.show();
         } else {
             throw new IllegalArgumentException("Access denied!");
         }

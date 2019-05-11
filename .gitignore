@@ -39,3 +39,6 @@ bin/*
 
 src.backup
 src.backup/*
+
+.classpath
+.project
