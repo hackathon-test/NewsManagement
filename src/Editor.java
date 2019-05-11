@@ -122,8 +122,8 @@ public class Editor extends Worker {
                     // 多音字取第一个
                     String[] pyList1 = PinyinHelper.toHanyuPinyinStringArray(o1.charAt(i), format);
                     String[] pyList2 = PinyinHelper.toHanyuPinyinStringArray(o2.charAt(i), format);
-                    String py1 = pyList1[pyList1.length-1];
-                    String py2 = pyList2[pyList2.length-1];
+                    String py1 = pyList1[pyList1.length - 1];
+                    String py2 = pyList2[pyList2.length - 1];
                     int res = py1.compareTo(py2);
                     if (res != 0) {
                         return res;
@@ -181,9 +181,9 @@ public class Editor extends Worker {
             return topTimesWords.get(0).getKey();
         } else {
             // 同频词语选择在文中更早出现的词语
-            List<Map.Entry<String, Integer>> topTimesEarliestWords =  wordsHasTopTimesAndEarliest(pickEarliestTopWord(newsContent, topTimesWords));
+            List<Map.Entry<String, Integer>> topTimesEarliestWords = wordsHasTopTimesAndEarliest(pickEarliestTopWord(newsContent, topTimesWords));
             List<String> words = new ArrayList<>();
-            for (Map.Entry<String, Integer> cur: topTimesEarliestWords) {
+            for (Map.Entry<String, Integer> cur : topTimesEarliestWords) {
                 words.add(cur.getKey());
             }
             return pickEaliestLongestTopWord(words);
@@ -239,14 +239,7 @@ public class Editor extends Worker {
      */
     private List<Map.Entry<String, Integer>> wordsHasTopTimes(List<Map.Entry<String, Integer>> tokenTimesMapEntryList) {
         int curTopTimes = tokenTimesMapEntryList.get(0).getValue();
-        List<Map.Entry<String, Integer>> result = new ArrayList<>();
-
-        for (Map.Entry<String, Integer> curToken : tokenTimesMapEntryList) {
-            if (curToken.getValue() == curTopTimes) {
-                result.add(curToken);
-            }
-        }
-        return result;
+        return getCompoentsOfExpectedValue(tokenTimesMapEntryList, curTopTimes);
     }
 
     /**
@@ -271,10 +264,14 @@ public class Editor extends Worker {
 
     private List<Map.Entry<String, Integer>> wordsHasTopTimesAndEarliest(List<Map.Entry<String, Integer>> list) {
         int curEarliestIndex = list.get(list.size() - 1).getValue();
+        return getCompoentsOfExpectedValue(list, curEarliestIndex);
+    }
+
+    private List<Map.Entry<String, Integer>> getCompoentsOfExpectedValue(List<Map.Entry<String, Integer>> list, int expectedValue) {
         List<Map.Entry<String, Integer>> result = new ArrayList<>();
 
         for (Map.Entry<String, Integer> curToken : list) {
-            if (curToken.getValue() == curEarliestIndex) {
+            if (curToken.getValue() == expectedValue) {
                 result.add(curToken);
             }
         }
