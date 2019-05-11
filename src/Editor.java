@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  */
 public class Editor extends Worker {
 
-    private static final String DEPART = "Editor";
+    private static final String DEPT = "Editor";
 
     public Editor() {
 
@@ -30,7 +30,7 @@ public class Editor extends Worker {
      * @param salary 工资
      */
     public Editor(String name, int age, int salary) {
-        super(name, age, salary, DEPART);
+        super(name, age, salary, DEPT);
     }
 
     /**
@@ -182,29 +182,29 @@ public class Editor extends Worker {
     }
 
     // 计算两字符串的编辑距离
-    private int getEditDistance(String str1, String str2){
+    private int getEditDistance(String str1, String str2) {
 
         int len1 = str1.length();
         int len2 = str2.length();
         int[][] edit = new int[len1][len2];
-        for(int i = 0; i < len1; i++) {
+        for (int i = 0; i < len1; i++) {
             edit[i][0] = i;
         }
-        for(int j = 0; j < len2; j++) {
+        for (int j = 0; j < len2; j++) {
             edit[0][j] = j;
         }
 
-        for(int i = 0; i < len1; i++) {
-            for(int j = 0; j < len2; j++) {
-                edit[i][j] = Integer.min(edit[i-1][j]+1,edit[i][j-1]+1);
-                if(str1.charAt(i-1) == str2.charAt(j-1)) {
-                    edit[i][j] = Integer.min(edit[i][j], edit[i-1][j-1]);
+        for (int i = 0; i < len1; i++) {
+            for (int j = 0; j < len2; j++) {
+                edit[i][j] = Integer.min(edit[i - 1][j] + 1, edit[i][j - 1] + 1);
+                if (str1.charAt(i - 1) == str2.charAt(j - 1)) {
+                    edit[i][j] = Integer.min(edit[i][j], edit[i - 1][j - 1]);
                 } else {
-                    edit[i][j] = Integer.min(edit[i][j], edit[i-1][j-1]+1);
+                    edit[i][j] = Integer.min(edit[i][j], edit[i - 1][j - 1] + 1);
                 }
             }
         }
 
-        return edit[len1-1][len2-1];
+        return edit[len1 - 1][len2 - 1];
     }
 }

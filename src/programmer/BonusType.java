@@ -25,21 +25,26 @@ public enum BonusType {
      */
     UI("UI", 0.25, 50, 300);
 
+    private static Map<String, BonusType> nameMaps = new HashMap<>(3);
+
+    static {
+        for (BonusType bonusType : BonusType.values()) {
+            nameMaps.put(bonusType.type, bonusType);
+        }
+    }
+
     /**
      * 类型
      */
     private String type;
-
     /**
      * 每月奖金占基本工资的比例
      */
     private double bonusPercent;
-
     /**
      * 加班一次补贴
      */
     private int allowance;
-
     /**
      * 加班补贴上限
      */
@@ -50,14 +55,6 @@ public enum BonusType {
         this.bonusPercent = bonusPercent;
         this.allowance = allowance;
         this.limit = limit;
-    }
-
-    private static Map<String, BonusType> nameMaps = new HashMap<>(3);
-
-    static {
-        for (BonusType bonusType : BonusType.values()) {
-            nameMaps.put(bonusType.type, bonusType);
-        }
     }
 
     public static BonusType fromString(String str) {

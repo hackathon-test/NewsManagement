@@ -3,7 +3,7 @@
  */
 public class Accountant extends Worker {
 
-    private static final String DEPART = "Accountant";
+    private static final String DEPT = "Accountant";
 
     public String password;
 
@@ -20,7 +20,7 @@ public class Accountant extends Worker {
      * @param password 密码
      */
     public Accountant(String name, int age, int salary, String password) {
-        super(name, age, salary, DEPART);
+        super(name, age, salary, DEPT);
         this.password = password;
     }
 
