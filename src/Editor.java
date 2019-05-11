@@ -7,6 +7,7 @@ import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
 import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
 import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -174,7 +175,36 @@ public class Editor extends Worker {
      * @param title2
      */
     public double minDistance(String title1, String title2) {
-        return 0;
+        int editDistance = getEditDistance(title1, title2);
+        int similarity = (1 - editDistance / Math.max(title1.length(), title2.length())) * 100;
+        DecimalFormat df = new DecimalFormat("#.##");
+        return Double.valueOf(df.format(similarity));
+    }
 
+    // 计算两字符串的编辑距离
+    private int getEditDistance(String str1, String str2){
+
+        int len1 = str1.length();
+        int len2 = str2.length();
+        int[][] edit = new int[len1][len2];
+        for(int i = 0; i < len1; i++) {
+            edit[i][0] = i;
+        }
+        for(int j = 0; j < len2; j++) {
+            edit[0][j] = j;
+        }
+
+        for(int i = 0; i < len1; i++) {
+            for(int j = 0; j < len2; j++) {
+                edit[i][j] = Integer.min(edit[i-1][j]+1,edit[i][j-1]+1);
+                if(str1.charAt(i-1) == str2.charAt(j-1)) {
+                    edit[i][j] = Integer.min(edit[i][j], edit[i-1][j-1]);
+                } else {
+                    edit[i][j] = Integer.min(edit[i][j], edit[i-1][j-1]+1);
+                }
+            }
+        }
+
+        return edit[len1-1][len2-1];
     }
 }
