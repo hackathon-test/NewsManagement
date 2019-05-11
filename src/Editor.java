@@ -1,3 +1,5 @@
+import com.huaban.analysis.jieba.JiebaSegmenter;
+import com.huaban.analysis.jieba.SegToken;
 import net.sourceforge.pinyin4j.PinyinHelper;
 import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
 import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
@@ -6,7 +8,6 @@ import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
 import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,7 +52,7 @@ public class Editor extends Worker {
      * 其余行数左对齐，
      * 每个短句不超过32个字符。
      */
-    public void textExtraction(String data){
+    public void textExtraction(String data) {
         List<String> sentences = this.splitText(data);
         StringBuilder builder = new StringBuilder();
         final int maxSize = 32;
@@ -75,8 +76,8 @@ public class Editor extends Worker {
         List<String> sentences = new ArrayList<>();
         int curIndex = 0;
         while (m.find()) {
-            System.out.println(data.substring(curIndex, m.start()+1));
-            sentences.add(data.substring(curIndex, m.start()+1));
+            System.out.println(data.substring(curIndex, m.start() + 1));
+            sentences.add(data.substring(curIndex, m.start() + 1));
             curIndex = m.start() + 1;
         }
         return sentences;
@@ -144,7 +145,10 @@ public class Editor extends Worker {
      * @param newsContent
      */
     public String findHotWords(String newsContent) {
-        return newsContent;
+        JiebaSegmenter segmenter = new JiebaSegmenter();
+        List<SegToken> tokens = segmenter.process(newsContent, JiebaSegmenter.SegMode.INDEX);
+
+        return tokens.toString();
 
     }
 
