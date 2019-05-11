@@ -1,9 +1,11 @@
+import java.util.regex.Pattern;
+
 /**
  * 会计类
  */
 public class Accountant extends Worker {
 
-    private static final String DEPART = "Accountant";
+    private static final String DEPT = "Accountant";
 
     public String password;
 
@@ -20,7 +22,7 @@ public class Accountant extends Worker {
      * @param password 密码
      */
     public Accountant(String name, int age, int salary, String password) {
-        super(name, age, salary, DEPART);
+        super(name, age, salary, DEPT);
         this.password = password;
     }
 
@@ -45,8 +47,87 @@ public class Accountant extends Worker {
      * @param number
      */
     public String numberToWords(String number) {
-        return password;
+        int intNumber;
+        try {
+            intNumber = Integer.parseInt(number);
+            if (intNumber < 0) {
+                return "illegal";
+            }
+        } catch (NumberFormatException e) {
+            return "illegal";
+        }
 
+        String[] digitGroup = initDigitGroup(number);
+        return handleDigitGroup(digitGroup);
+
+    }
+
+    /**
+     * 处理各段切分好的dig并返回结果
+     */
+    private String handleDigitGroup(String[] digGroup) {
+        String[] digitUnit = new String[]{"Billion ", "Million ", "Thousand ", ""};
+        StringBuilder words = new StringBuilder();
+        for (int i = 0; i < digGroup.length; i++) {
+            if (digGroup[i] != null) {
+                words.append(handleThreeBitDigit(digGroup[i], digitUnit[i]));
+            }
+        }
+        return words.toString().trim();
+    }
+
+    private String handleThreeBitDigit(String num, String unit) {
+        if (Integer.parseInt(num) == 0) {
+            return "";
+        }
+        String[] numToWords = new String[]{ // 基本数词表
+                "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight",
+                "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen",
+                "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen",
+                "Twenty", "", "", "", "", "", "", "", "", "", "Thirty", "", "", "",
+                "", "", "", "", "", "", "Forty", "", "", "", "", "", "", "", "",
+                "", "Fifty", "", "", "", "", "", "", "", "", "", "Sixty", "", "",
+                "", "", "", "", "", "", "", "Seventy", "", "", "", "", "", "", "",
+                "", "", "Eighty", "", "", "", "", "", "", "", "", "", "Ninety"};
+        StringBuilder words = new StringBuilder();
+        char[] chars = num.toCharArray();
+        if (chars[0] != '0') {
+            words.append(numToWords[chars[0] - '0'] + " " + "Hundred ");
+        }
+        int lastTwo = Integer.parseInt(num) % 100;
+        if (lastTwo <= 20) {
+            words.append(numToWords[lastTwo] + " ");
+        } else {
+            if (chars[1] != '0') {
+                words.append(numToWords[(chars[1] - '0') * 10] + " ");
+            }
+            if (chars[2] != '0') {
+                words.append(numToWords[chars[2] - '0'] + " ");
+            }
+        }
+        return words.append(unit).toString();
+    }
+
+    /**
+     * 将String每三个字符切为4段并返回
+     */
+    private String[] initDigitGroup(String number) {
+        String[] digGroup = new String[4];
+        int length = number.length();
+        for (int i = 3; i >= 0; i--, length -= 3) {
+            if (length - 3 > 0) {
+                digGroup[i] = number.substring(length - 3, length);
+            } else {
+                digGroup[i] = number.substring(0, length);
+                if (digGroup[i].length() == 1) {
+                    digGroup[i] = "00" + digGroup[i];
+                } else if (digGroup[i].length() == 2) {
+                    digGroup[i] = "0" + digGroup[i];
+                }
+                break;
+            }
+        }
+        return digGroup;
     }
 
     /**
@@ -67,10 +148,26 @@ public class Accountant extends Worker {
      * password: HelloWorld
      * return: 1
      *
-     * @param password
+     * @param
      */
     public int checkPassword() {
-        return 0;
-
+        String patternChar = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,20}$";
+        char currentChar = ' ';
+        int repeat = 0;
+        if (Pattern.matches(patternChar, password)) {
+            for (int i = 0; i < password.length(); i++) {
+                if (currentChar != password.charAt(i)) {
+                    repeat = 1;
+                    currentChar = password.charAt(i);
+                } else {
+                    repeat++;
+                    if (repeat == 3) {
+                        return 1;
+                    }
+                }
+            }
+            return 0;
+        }
+        return 1;
     }
 }

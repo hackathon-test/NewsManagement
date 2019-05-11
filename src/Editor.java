@@ -8,6 +8,7 @@ import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
 import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
 import java.io.UnsupportedEncodingException;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,7 +18,7 @@ import java.util.regex.Pattern;
  */
 public class Editor extends Worker {
 
-    private static final String DEPART = "Editor";
+    private static final String DEPT = "Editor";
 
     public Editor() {
 
@@ -29,7 +30,7 @@ public class Editor extends Worker {
      * @param salary 工资
      */
     public Editor(String name, int age, int salary) {
-        super(name, age, salary, DEPART);
+        super(name, age, salary, DEPT);
     }
 
     /**
@@ -58,15 +59,25 @@ public class Editor extends Worker {
         final int maxSize = 32;
         StringBuilder curLine = new StringBuilder("    ");
         for (int i = 0; i < sentences.size(); i++) {
-            while (sentences.get(i).length() <= maxSize - curLine.length()) {
+            while (i < sentences.size() && byteLength(sentences.get(i)) <= maxSize - byteLength(curLine.toString())) {
                 curLine.append(sentences.get(i));
                 i++;
             }
-            int restSpace = maxSize - curLine.length();
-            curLine.append(new String(new char[restSpace]).replace("\0", " "));
+            i--;
             builder.append(curLine);
-            builder.append(System.getProperty("line.separator"));
+            if (i < sentences.size() - 1) {
+                builder.append(System.getProperty("line.separator"));
+            }
             curLine = new StringBuilder();
+        }
+        System.out.println(builder.toString());
+    }
+
+    private int byteLength(String str) {
+        try {
+            return str.getBytes("GBK").length;
+        } catch (UnsupportedEncodingException e) {
+            return 0;
         }
     }
 
@@ -76,7 +87,6 @@ public class Editor extends Worker {
         List<String> sentences = new ArrayList<>();
         int curIndex = 0;
         while (m.find()) {
-            System.out.println(data.substring(curIndex, m.start() + 1));
             sentences.add(data.substring(curIndex, m.start() + 1));
             curIndex = m.start() + 1;
         }
@@ -246,7 +256,37 @@ public class Editor extends Worker {
      * @param title2
      */
     public double minDistance(String title1, String title2) {
-        return 0;
+        int editDistance = getEditDistance(title1, title2);
+        int similarity = (1 - editDistance / Math.max(title1.length(), title2.length())) * 100;
+        DecimalFormat df = new DecimalFormat("#.##");
+        return Double.valueOf(df.format(similarity));
+    }
+
+    // 计算两字符串的编辑距离
+    private int getEditDistance(String str1, String str2) {
+
+        int len1 = str1.length();
+        int len2 = str2.length();
+        int[][] edit = new int[len1][len2];
+        for (int i = 0; i < len1; i++) {
+            edit[i][0] = i;
+        }
+        for (int j = 0; j < len2; j++) {
+            edit[0][j] = j;
+        }
+
+        for (int i = 0; i < len1; i++) {
+            for (int j = 0; j < len2; j++) {
+                edit[i][j] = Integer.min(edit[i - 1][j] + 1, edit[i][j - 1] + 1);
+                if (str1.charAt(i - 1) == str2.charAt(j - 1)) {
+                    edit[i][j] = Integer.min(edit[i][j], edit[i - 1][j - 1]);
+                } else {
+                    edit[i][j] = Integer.min(edit[i][j], edit[i - 1][j - 1] + 1);
+                }
+            }
+        }
+
+        return edit[len1 - 1][len2 - 1];
     }
 
     private class ValueComparator implements Comparator<Map.Entry<String, Integer>> {
