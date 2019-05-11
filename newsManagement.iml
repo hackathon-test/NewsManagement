@@ -19,5 +19,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="net.mooctest.aut" />
+    <orderEntry type="library" name="org.hamcrest.core_1.3.0.v201303031735" level="project" />
+    <orderEntry type="library" name="pinyin4j-2.5.0" level="project" />
   </component>
 </module>

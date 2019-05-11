@@ -1,4 +1,15 @@
+import net.sourceforge.pinyin4j.PinyinHelper;
+import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType;
+import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
+import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
+import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
+import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
+
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 文员
@@ -40,8 +51,35 @@ public class Editor extends Worker {
      * 其余行数左对齐，
      * 每个短句不超过32个字符。
      */
-    public void textExtraction(String data) {
+    public void textExtraction(String data){
+        List<String> sentences = this.splitText(data);
+        StringBuilder builder = new StringBuilder();
+        final int maxSize = 32;
+        StringBuilder curLine = new StringBuilder("    ");
+        for (int i = 0; i < sentences.size(); i++) {
+            while (sentences.get(i).length() <= maxSize - curLine.length()) {
+                curLine.append(sentences.get(i));
+                i++;
+            }
+            int restSpace = maxSize - curLine.length();
+            curLine.append(new String(new char[restSpace]).replace("\0", " "));
+            builder.append(curLine);
+            builder.append(System.getProperty("line.separator"));
+            curLine = new StringBuilder();
+        }
+    }
 
+    private List<String> splitText(String data) {
+        Pattern punctuationPattern = Pattern.compile("[，。？！；]");
+        Matcher m = punctuationPattern.matcher(data);
+        List<String> sentences = new ArrayList<>();
+        int curIndex = 0;
+        while (m.find()) {
+            System.out.println(data.substring(curIndex, m.start()+1));
+            sentences.add(data.substring(curIndex, m.start()+1));
+            curIndex = m.start() + 1;
+        }
+        return sentences;
     }
 
 
@@ -62,10 +100,35 @@ public class Editor extends Worker {
      * @param newsList
      */
     public ArrayList<String> newsSort(ArrayList<String> newsList) {
+
+        newsList.sort((o1, o2) -> {
+            // 设置汉语拼音格式
+            HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
+            format.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
+            format.setVCharType(HanyuPinyinVCharType.WITH_V);
+            format.setCaseType(HanyuPinyinCaseType.UPPERCASE);
+            int len = Math.min(o1.length(), o2.length());
+            for (int i = 0; i < len; i++) {
+                try {
+                    // 多音字取第一个
+                    // TODO 判断英文的情况
+                    String py1 = PinyinHelper.toHanyuPinyinStringArray(o1.charAt(i), format)[0];
+                    String py2 = PinyinHelper.toHanyuPinyinStringArray(o2.charAt(i), format)[0];
+                    int res = py1.compareTo(py2);
+                    if (res != 0) {
+                        return res;
+                    }
+                } catch (BadHanyuPinyinOutputFormatCombination badHanyuPinyinOutputFormatCombination) {
+                    badHanyuPinyinOutputFormatCombination.printStackTrace();
+                }
+            }
+
+            return o1.length() - o2.length();
+        });
+
         return newsList;
 
     }
-
 
     /**
      * 热词搜索
