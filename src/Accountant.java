@@ -151,23 +151,64 @@ public class Accountant extends Worker {
      * @param
      */
     public int checkPassword() {
-        String patternChar = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,20}$";
+        Boolean[] hasRequire = new Boolean[]{false,false,false};
         char currentChar = ' ';
         int repeat = 0;
-        if (Pattern.matches(patternChar, password)) {
-            for (int i = 0; i < password.length(); i++) {
-                if (currentChar != password.charAt(i)) {
-                    repeat = 1;
-                    currentChar = password.charAt(i);
-                } else {
-                    repeat++;
-                    if (repeat == 3) {
-                        return 1;
-                    }
+        int operator = 0;
+        int length = password.length();
+        for (int i = 0; i < password.length(); i++) {
+            char c = password.charAt(i);
+            if (c >= 'A' && c <= 'Z') {
+                hasRequire[0] = true;
+            } else if (c >= 'a' && c <= 'z') {
+                hasRequire[1] = true;
+            } else if (c >= '0' && c <= '9') {
+                hasRequire[2] = true;
+            } else {
+                operator++;
+                length = judge(hasRequire, length);
+                currentChar=' ';
+                repeat = 0;
+                continue;
+            }
+            if (currentChar != password.charAt(i)) {
+                repeat = 1;
+                currentChar = password.charAt(i);
+            } else {
+                repeat++;
+                if (repeat == 3) {
+                    operator++;
+                    length = judge(hasRequire,length);
+                    currentChar=' ';
+                    repeat = 0;
                 }
             }
-            return 0;
         }
-        return 1;
+        for (int i = 0; i < hasRequire.length; i++){
+            if (!hasRequire[i]){
+                operator++;
+                if (length < 8){
+                    length++;
+                }
+            }
+        }
+        if (length < 8){
+            operator += (8 - length);
+        }
+        return operator;
+    }
+
+    private int judge(Boolean[] hasRequire, int length) {
+        for (int i = 0; i < hasRequire.length; i++){
+            if (!hasRequire[i]){
+                hasRequire[i] = true;
+            }
+        }
+        if (length>20){
+            length--;
+        } else if (length < 8){
+            length++;
+        }
+        return length;
     }
 }

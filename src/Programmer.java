@@ -122,8 +122,8 @@ public class Programmer extends Worker {
      * @param comment
      */
     public String hideUserinfo(String comment) {
-        String pattern = ".*@.*";
-        boolean isEmail = Pattern.matches(pattern, comment);
+        Pattern p = Pattern.compile("[a-zA-Z@\\.]+");
+        boolean isEmail = p.matcher(comment).find();
         if (isEmail) {
             return handleEmail(comment.toLowerCase());
         } else {
