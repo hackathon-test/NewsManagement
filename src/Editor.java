@@ -256,7 +256,7 @@ public class Editor extends Worker {
      */
     public double minDistance(String title1, String title2) {
         int editDistance = getEditDistance(title1, title2);
-        double similarity = (double) editDistance / Math.max(title1.length(), title2.length()) * 100;
+        double similarity = (1 - (double) editDistance / Math.max(title1.length(), title2.length())) * 100;
         DecimalFormat df = new DecimalFormat("#.##");
         return Double.valueOf(df.format(similarity));
     }
