@@ -52,7 +52,7 @@ public class Editor extends Worker {
      * 每个短句不超过32个字符。
      */
     public void textExtraction(String data) {
-        List<String> sentences = this.splitText(data);
+        List<String> sentences = this.splitText(data, true);
         StringBuilder builder = new StringBuilder();
         final int maxSize = 32;
         StringBuilder curLine = new StringBuilder("    ");
@@ -73,6 +73,10 @@ public class Editor extends Worker {
         System.out.println(builder.toString());
     }
 
+    /**
+     * @param str 要获取字符长度的字符串
+     * @return 字符长度
+     */
     private int byteLength(String str) {
         try {
             return str.getBytes("GBK").length;
@@ -81,13 +85,17 @@ public class Editor extends Worker {
         }
     }
 
-    private List<String> splitText(String data) {
+    /**
+     * @param data 中文句子
+     * @return 包含文末标点符号的句子列表
+     */
+    private List<String> splitText(String data, boolean hasPuncuation) {
         Pattern punctuationPattern = Pattern.compile("[，。？！＠＃￥％……＆（）]");
         Matcher m = punctuationPattern.matcher(data);
         List<String> sentences = new ArrayList<>();
         int curIndex = 0;
         while (m.find()) {
-            sentences.add(data.substring(curIndex, m.start() + 1));
+            sentences.add(hasPuncuation ? data.substring(curIndex, m.start() + 1) : data.substring(curIndex, m.start()));
             curIndex = m.start() + 1;
         }
         return sentences;
@@ -121,7 +129,7 @@ public class Editor extends Worker {
             int len = Math.min(o1.length(), o2.length());
             for (int i = 0; i < len; i++) {
                 try {
-                    // 多音字取第一个
+                    // 多音字取最后一个
                     String[] pyList1 = PinyinHelper.toHanyuPinyinStringArray(o1.charAt(i), format);
                     String[] pyList2 = PinyinHelper.toHanyuPinyinStringArray(o2.charAt(i), format);
                     String py1 = pyList1[pyList1.length - 1];
@@ -156,55 +164,26 @@ public class Editor extends Worker {
      * @param newsContent
      */
     public String findHotWords(String newsContent) {
-        List<String> sentences = splitTextWithoutPunc(newsContent.trim());
+        // 获取所有可能的热词及其频次
+        List<String> sentences = splitText(newsContent.trim(), false);
         List<String> allHotwords = getAllHotwords(sentences);
+        Map<String, Integer> frequencyOfWordsMap = getFrequencyOfWords(allHotwords);
 
-        Map<String, Integer> tokenTimesMap = new HashMap<>();
-        for (String curWord : allHotwords) {
-            if (checkWordLen(curWord)) {
-                if (tokenTimesMap.containsKey(curWord)) {
-                    int curTimeOfToken = tokenTimesMap.get(curWord);
-                    curTimeOfToken++;
-                    tokenTimesMap.put(curWord, curTimeOfToken);
-                } else {
-                    tokenTimesMap.put(curWord, 1);
-                }
-            }
-
-        }
-
-        // 排序
-        List<Map.Entry<String, Integer>> tokenTimesMapEntryList = new ArrayList<>(tokenTimesMap.entrySet());
-        tokenTimesMapEntryList.sort(new ValueComparator());
-
-        // 分析结果
-        List<Map.Entry<String, Integer>> topTimesWords = wordsHasTopTimes(tokenTimesMapEntryList);
-        if (topTimesWords.size() == 1) {
-            return topTimesWords.get(0).getKey();
+        // 出现频次最高的词语
+        Set<String> wordsHasTopTimes = getWordsHasTopTimes(frequencyOfWordsMap);
+        if (wordsHasTopTimes.size() == 1) {
+            return wordsHasTopTimes.iterator().next();
         } else {
             // 同频词语选择在文中更早出现的词语
-            List<Map.Entry<String, Integer>> topTimesEarliestWords = wordsHasTopTimesAndEarliest(pickEarliestTopWord(newsContent, topTimesWords));
-            List<String> words = new ArrayList<>();
-            for (Map.Entry<String, Integer> cur : topTimesEarliestWords) {
-                words.add(cur.getKey());
-            }
-            return pickEaliestLongestTopWord(words);
+            Set<String> topTimesEarliestWords = getEarliestWord(newsContent, wordsHasTopTimes);
+            return pickLongestEarliestTopWord(topTimesEarliestWords);
         }
     }
 
-
-    private List<String> splitTextWithoutPunc(String data) {
-        Pattern punctuationPattern = Pattern.compile("[，。？！＠＃￥％……＆（）]");
-        Matcher m = punctuationPattern.matcher(data);
-        List<String> sentences = new ArrayList<>();
-        int curIndex = 0;
-        while (m.find()) {
-            sentences.add(data.substring(curIndex, m.start()));
-            curIndex = m.start() + 1;
-        }
-        return sentences;
-    }
-
+    /**
+     * @param sentences 句子列表
+     * @return 所有可能的热词
+     */
     private List<String> getAllHotwords(List<String> sentences) {
         List<String> result = new ArrayList<>();
         for (String sentence : sentences) {
@@ -213,6 +192,10 @@ public class Editor extends Worker {
         return result;
     }
 
+    /**
+     * @param sentence 一个句子
+     * @return 该句子中所有可能的热词
+     */
     private List<String> getHotwordOfCurSentence(String sentence) {
         List<String> result = new ArrayList<>();
         for (int i = 0; i < sentence.length(); i++) {
@@ -236,51 +219,82 @@ public class Editor extends Worker {
     }
 
     /**
-     * @param tokenTimesMapEntryList 包含词语及其频次的列表
-     * @return 频次最高的词语（可能大于一）
+     * @param hotwords 所有可能的热词
+     * @return 热词及其出现的频率对应 map
      */
-    private List<Map.Entry<String, Integer>> wordsHasTopTimes(List<Map.Entry<String, Integer>> tokenTimesMapEntryList) {
-        int curTopTimes = tokenTimesMapEntryList.get(0).getValue();
-        return getCompoentsOfExpectedValue(tokenTimesMapEntryList, curTopTimes);
+    private Map<String, Integer> getFrequencyOfWords(List<String> hotwords) {
+        Map<String, Integer> tokenTimesMap = new HashMap<>();
+        for (String curWord : hotwords) {
+            if (checkWordLen(curWord)) {
+                if (tokenTimesMap.containsKey(curWord)) {
+                    int curTimeOfToken = tokenTimesMap.get(curWord);
+                    curTimeOfToken++;
+                    tokenTimesMap.put(curWord, curTimeOfToken);
+                } else {
+                    tokenTimesMap.put(curWord, 1);
+                }
+            }
+        }
+        return tokenTimesMap;
     }
 
     /**
-     * @param newsContent   文本内容
-     * @param topTimesWords 频率出现最高的词语
+     * @param frequencyOfWordsMap 包含词语及其频次的列表
+     * @return 频次最高的词语（可能大于一）
+     */
+    private Set<String> getWordsHasTopTimes(Map<String, Integer> frequencyOfWordsMap) {
+        // 排序
+        List<Map.Entry<String, Integer>> frequencyOfWordsMapEntryList = new ArrayList<>(frequencyOfWordsMap.entrySet());
+        frequencyOfWordsMapEntryList.sort(new ValueComparator());
+
+        int curTopTimes = frequencyOfWordsMapEntryList.get(0).getValue();
+        return getCompoentsOfExpectedValue(frequencyOfWordsMapEntryList, curTopTimes);
+    }
+
+    /**
+     * @param newsContent      文本内容
+     * @param wordsHasTopTimes 频率出现最高的词语
      * @return 频率出现最高且在文本中出现最早的词语
      */
-    private List<Map.Entry<String, Integer>> pickEarliestTopWord(String newsContent, List<Map.Entry<String, Integer>> topTimesWords) {
+    private Set<String> getEarliestWord(String newsContent, Set<String> wordsHasTopTimes) {
+        // 统计热词在文中第一次出现的位置
         Map<String, Integer> wordsWithIndexMap = new HashMap<>();
-        for (Map.Entry<String, Integer> token : topTimesWords) {
-            String curWord = token.getKey();
+        for (String curWord : wordsHasTopTimes) {
             int firstIndex = newsContent.indexOf(curWord);
             wordsWithIndexMap.put(curWord, firstIndex);
         }
 
-        // 按照出现时间排序
+        // 按照出现时间的降序排序
         List<Map.Entry<String, Integer>> wordsWithIndexMapEntryList = new ArrayList<>(wordsWithIndexMap.entrySet());
         wordsWithIndexMapEntryList.sort(new ValueComparator());
-        return wordsWithIndexMapEntryList;
+
+        // 排序后的最后一个即是最早出现的
+        int curEarliestIndex = wordsWithIndexMapEntryList.get(wordsWithIndexMapEntryList.size() - 1).getValue();
+        return getCompoentsOfExpectedValue(wordsWithIndexMapEntryList, curEarliestIndex);
     }
 
 
-    private List<Map.Entry<String, Integer>> wordsHasTopTimesAndEarliest(List<Map.Entry<String, Integer>> list) {
-        int curEarliestIndex = list.get(list.size() - 1).getValue();
-        return getCompoentsOfExpectedValue(list, curEarliestIndex);
-    }
-
-    private List<Map.Entry<String, Integer>> getCompoentsOfExpectedValue(List<Map.Entry<String, Integer>> list, int expectedValue) {
-        List<Map.Entry<String, Integer>> result = new ArrayList<>();
+    /**
+     * @param list          包含 map.entry 的列表
+     * @param expectedValue 期望的 entry 的值
+     * @return entry 值为 expectedValue 的 entry key值的 set
+     */
+    private Set<String> getCompoentsOfExpectedValue(List<Map.Entry<String, Integer>> list, int expectedValue) {
+        Set<String> result = new HashSet<>();
 
         for (Map.Entry<String, Integer> curToken : list) {
             if (curToken.getValue() == expectedValue) {
-                result.add(curToken);
+                result.add(curToken.getKey());
             }
         }
         return result;
     }
 
-    private String pickEaliestLongestTopWord(List<String> words) {
+    /**
+     * @param words 所有的备选热词
+     * @return 在频次最高、出现最早的基础上，最长的热词
+     */
+    private String pickLongestEarliestTopWord(Set<String> words) {
         String result = "";
         for (String word : words) {
             if (word.length() > result.length()) {
@@ -341,6 +355,9 @@ public class Editor extends Worker {
         return dp[str2.length()];
     }
 
+    /**
+     * 按照降序排列
+     */
     private class ValueComparator implements Comparator<Map.Entry<String, Integer>> {
         @Override
         public int compare(Map.Entry<String, Integer> mp1, Map.Entry<String, Integer> mp2) {
